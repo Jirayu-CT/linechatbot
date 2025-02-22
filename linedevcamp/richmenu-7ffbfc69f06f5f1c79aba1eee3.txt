@@ -1,0 +1,15 @@
+"richmenu-14d3c8bc6b99efc7953cf1c88e91fb42" <--richmenu TH
+"richmenu-32c2fe8ebc6f0121dcae50163c57892f" <--richmenu EN
+"richmenu-ccc5c05da7bfd9186374115653c9ac5d" <--richmenu Ex
+
+https://github.com/line-dev-camp/workshop
+
+docs.google.com/presentation/d/1Qkc4FAbjWB0i03PY2H47G7NkKL1IEI8JWSyukoTKdw.edit?pli=1#slide=id.g2ce42533f22_0_22
+
+
+LIFF: https://codelab.line.me/codelabs/liff/index.html#1
+
+
+<section id="profile">
+      <img id="pictureUrl" src="https://bucket.ex10.tech/images/0350ceb0-04c4-11ef-808f-0242ac12000b/originalContentUrl.png" />
+    </section>
