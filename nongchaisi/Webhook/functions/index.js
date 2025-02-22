@@ -67,6 +67,9 @@ exports.dialogflowFulfillment = onRequest( {region: "asia-northeast1"}, async (r
                 });
                 await line.reply(replyToken, [{ type: "text", text: agent.query + "\nระบบได้แจ้งเตือนไปยังเจ้าหน้าที่แล้วค่ะ เจ้าหน้าที่จะรีบมาตอบนะคะ" }]);
             }
+            else{
+                await line.reply(replyToken, [{ type: "text", text: agent.query + "\nระบบได้แจ้งเตือนไปยังเจ้าหน้าที่แล้วค่ะ เจ้าหน้าที่จะรีบมาตอบนะคะ" }]);
+            }
             myCache.set("Notify_" + userId, false, 600);
         }
         else if (agent.query.includes("สอบถามกับ Bot")) {
@@ -89,7 +92,7 @@ exports.dialogflowFulfillment = onRequest( {region: "asia-northeast1"}, async (r
                         name: "Gemini",
                         iconUrl: "https://wutthipong.info/images/geminiicon.png",
                     },
-                    text: text,
+                    text: `[ตอบโดย AI] ${text}`,
                 },
             ]);
             chatHistory.push({ role: "user", parts: [{ text: agent.query }] });

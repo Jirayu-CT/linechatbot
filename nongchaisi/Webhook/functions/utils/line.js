@@ -14,7 +14,7 @@ const getImageBinary = async (messageId) => {
         responseType: "arraybuffer",
     });
     return originalImage.data;
-};
+};  
 
 const reply = (token, payload) => {
     return axios({

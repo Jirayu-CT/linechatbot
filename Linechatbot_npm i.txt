@@ -2,11 +2,15 @@ npm install -g firebase-tools
 firebase login
 firebase init
 cd functions
+
 npm install axios --save
 npm install @google/generative-ai --save
-npm install dialogflow-fulfillment --save
 npm install node-cache --save
+npm install moment-timezone
+
+npm install dialogflow-fulfillment --save
 npm i qs --save
+npm install moment-timezone
 
 firebase emulators:start
 firebase deploy --only functions
