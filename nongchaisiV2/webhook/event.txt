@@ -1,0 +1,22 @@
+event { 
+    "type": "message", 
+    "message": { 
+        "type": "image", 
+        "id": "549235937155482161", 
+        "quoteToken": "Clv8N0MjkIREWX2x5rjJh4bWP8xDwS2_ylw2QX7g5wR9M2PzRP-_HeFUg-TjGGdoQkxtK9UCSfzuXghXPAuv7tA0ah5jlT5CaGtDjx4yDFmtlDEuidjs65Qu_VuJqwqkaZkoE7TmLEqoErRN88ebUQ", 
+        "contentProvider": { 
+            "type": "line" 
+        } 
+    }, 
+    "webhookEventId": "01JMP1D6P5NXM4985K32VW0NZW", 
+    "deliveryContext": { 
+        "isRedelivery": false 
+    }, 
+    "timestamp": 1740201433524, 
+    "source": { 
+        "type": "user", 
+        "userId": "U5f569ab684edca193e66eded7a772423" 
+    }, 
+    "replyToken": "f644eafdf5e04014a5111f31df903e54", 
+    "mode": "active" 
+}
