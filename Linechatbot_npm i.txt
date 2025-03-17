@@ -10,7 +10,6 @@ npm install moment-timezone
 
 npm install dialogflow-fulfillment --save
 npm i qs --save
-npm install moment-timezone
 
 firebase emulators:start
 firebase deploy --only functions

@@ -1,8 +1,3 @@
-CHANNEL_ACCESS_TOKEN="tHbh2nGOP0IfQ2INTZOxZp8BpVLv5qNWQidZIDjn/T18YKdA9pdT7ydCI0qsLTgsmPZBw1nIyQAYyHFWXVGNTUumSXNZwi2AuvcDmQL3fdh9WDYSYd+B1JX5Eqaze3BhXyRM8dwlCrHMkSVG08U2twdB04t89/1O/w1cDnyilFU="
-API_KEY="AIzaSyCGCYGzr2Lu_EjP2N1iUgeL3WuSsKsmFD0"
-NOTIFY_TOKEN = "T7C1h8dKyaHMjmBs81Mnnnsm84out5METh3XS485FwU"
-
-
 # 
 #  LINE Messaging API
 #  ------------------------------------------------------------------------
@@ -26,5 +21,11 @@ LINE_MESSAGING_ACCESS_TOKEN=''
 #
 #Dialogflow Console
 #Integration->LINE->Webhook ID 
-DIALOGFLOW_AGENT_ID=
+DIALOGFLOW_AGENT_ID=''
 #  ------------------------------------------------------------------------
+GEMINI_API_KEY=''
+
+NOTIFY_TOKEN = ""
+
+LINE_MESSAGING_ACCESS_TOKEN_NOTIFY=''
+LINE_MESSAGEING_GROUP_ID='' 
