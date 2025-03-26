@@ -13,3 +13,8 @@ npm i qs --save
 
 firebase emulators:start
 firebase deploy --only functions
+
+FirebaseError: Error parsing triggers: Cannot find module 'firebase-functions/v2' Require stack
+npm install -g firebase-functions
+npm install --save-dev firebase-functions
+npm install firebase-functions

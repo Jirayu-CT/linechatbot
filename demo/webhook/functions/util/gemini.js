@@ -27,7 +27,7 @@ exports.chat = async (cacheChatHistory, prompt) => {
         const chatHistory = [
             {
                 role: "user",
-                parts: [{ text: "สวัสดี คุณสามารถช่วยตอบคำถามของฉันจากบริบทที่เคยถามและอ้างอิงจากคำตอบที่คุณตอบไปได้ไหม?" }]
+                parts: [{ text: "สวัสดี คุณสามารถช่วยตอบคำถามของฉันจากบริบทที่เคยถามและอ้างอิงจากคำตอบที่คุณตอบไป เป็นภาษาไทยได้ไหม?" }]
             },
             {
                 role: "model",
@@ -55,8 +55,14 @@ exports.multimodal = async (prompt, base64Image) => {
         const imageParts = [{
             inlineData: { data: base64Image, mimeType }
         }];
-        const result = await model.generateContent([prompt, ...imageParts], safetySettings);
+
+        // Adjust the prompt to explicitly request a Thai response
+        const thaiPrompt = `${prompt}\n\nโปรดตอบกลับเป็นภาษาไทยทั้งหมด`;
+
+        const result = await model.generateContent([thaiPrompt, ...imageParts], safetySettings);
         console.log("Secsessful Gemini: Multimodal");
+
+        // Return the response text
         return result.response.text();
     } catch (error) {
         console.error('Error in Gemini multimodal:', error.message);

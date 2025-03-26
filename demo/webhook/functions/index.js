@@ -93,7 +93,7 @@ exports.webhook = onRequest(async (request, response) => {
                     else if (mode === "staff") {
                         textMessage = "สอบถามกับเจ้าหน้าที่ " + textMessage
                     }
-                    else{
+                    else {
                         mode = "Dialogflow"
                     }
 
@@ -133,7 +133,7 @@ exports.webhook = onRequest(async (request, response) => {
                                 "text": "ทางเจ้าหน้าที่ได้รับข้อความแล้ว ทางเจ้าหน้าที่จะติดต่อกลับไปโดยเร็วที่สุด",
                             }])
                         }
-                        else{
+                        else {
                             return response.end()
                         }
                     }
@@ -144,15 +144,35 @@ exports.webhook = onRequest(async (request, response) => {
                         //ตอบกลับรูปภาพ
                         const cacheImage = myCache.get(CACHE_IMAGE + userId);
                         if (cacheImage) {
+                            textMessage = textMessage.replace("สอบถามกับ AI ", "");
+                            if (textMessage === "ต้องการสอบถามรูปภาพนี้") {
+                                await line.isAnimationLoading(userId);
+
+                                await line.replyWithStateless(event.replyToken, [
+                                    {
+                                        type: "text",
+                                        sender: {
+                                            name: "Gemini",
+                                            iconUrl: "https://wutthipong.info/images/geminiicon.png",
+                                        },
+                                        text: "[ตอบโดย AI] ระบุสิ่งที่ต้องการทราบจากภาพมาได้เลยได้เลย:)"
+                                    }
+                                ]);
+                                myCache.set(userId, mode, 600);
+                                return response.end();
+                            }
+                            
                             const text = await gemini.multimodal(textMessage, cacheImage);
-                            await line.replyWithStateless(event.replyToken, [{ 
-                                type: "text", 
+                            await line.replyWithStateless(event.replyToken, [{
+                                type: "text",
                                 sender: {
                                     name: "Gemini",
                                     iconUrl: "https://wutthipong.info/images/geminiicon.png"
                                 },
                                 text: `[ตอบโดย AI] ${text}`
                             }]);
+                            console.log("Mode IMAGE: ", mode);
+                            myCache.set(userId, mode, 600);
                             break;
                         }
 
@@ -176,51 +196,102 @@ exports.webhook = onRequest(async (request, response) => {
                         chatHistory.push({ role: "model", parts: [{ text: text }] });
                         myCache.set(CACHE_CHAT + userId, chatHistory, 120);
                     }
-                    else if (mode === "Dialogflow") { 
+                    else if (mode === "Dialogflow") {
                         /* Foward to Dialogflow */
                         await line.isAnimationLoading(userId)
                         await dialogflow.forwardDialodflow(request)
                     }
                     myCache.set(userId, mode, 600);
+                    console.log("Mode TEXT: ", mode);
                 }
-                else if(event.message.type === "image") {
-                    if(mode === "staff") {
-                        mode = "staff"
-                        return response.end()
-                    }
-                    else if(mode === "bot") {
-                        mode = "bot"
-                        await line.isAnimationLoading(userId)
+                else if (event.message.type === "image") {
+                    const getImageBinary = await line.getImageBinary(event.message.id);
+                    const imageBase64 = Buffer.from(getImageBinary, "binary").toString("base64");
+                    myCache.set(CACHE_IMAGE + userId, imageBase64, 60);
 
-                        const getImageBinary = await line.getImageBinary(event.message.id);
-                        const imageBase64 = Buffer.from(getImageBinary, "binary").toString("base64");
-                        myCache.set(CACHE_IMAGE + userId, imageBase64, 60);
-                        await line.replyWithStateless(event.replyToken, [{ 
-                            type: "text", 
-                            sender: {
-                                name: "Gemini",
-                                iconUrl: "https://wutthipong.info/images/geminiicon.png",
+                    if (mode === "staff") {
+                        mode = "staff";
+                    }
+                    if (mode === "bot") {
+                        mode = "bot";
+                        await line.isAnimationLoading(userId);
+
+                        await line.replyWithStateless(event.replyToken, [
+                            {
+                                type: "text",
+                                sender: {
+                                    name: "Gemini",
+                                    iconUrl: "https://wutthipong.info/images/geminiicon.png",
+                                },
+                                text: "[ตอบโดย AI] ระบุสิ่งที่ต้องการทราบจากภาพมาได้เลยได้เลย:)"
+                            }
+                        ]);
+                    } else {
+                        mode = "Dialogflow";
+                        const cacheImage = myCache.get(CACHE_IMAGE + userId);
+
+                        let question = "ขออภัย ไม่สามารถตอบกลับข้อความประเภทนี้ได้ คุณต้องการสอบถามกับ AI หรือ เจ้าหน้าที่";
+                        let answer = `ต้องการสอบถามรูปภาพนี้`;
+                        // await line.isAnimationLoading(userId);
+                        await line.replyWithStateless(event.replyToken, [
+                            {
+                                type: "text",
+                                text: question,
+                                sender: {
+                                    name: "Dialogflow",
+                                },
+                                quickReply: {
+                                    items: [
+                                        {
+                                            type: "action",
+                                            action: {
+                                                type: "message",
+                                                label: "สอบถามกับ AI",
+                                                text: `สอบถามกับ AI ${answer}`,
+                                            },
+                                        },
+                                        {
+                                            type: "action",
+                                            action: {
+                                                type: "message",
+                                                label: "สอบถามกับเจ้าหน้าที่",
+                                                text: `สอบถามกับเจ้าหน้าที่ ${answer}`,
+                                            },
+                                        },
+                                        // {
+                                        //     type: "action",
+                                        //     action: {
+                                        //         type: "uri",
+                                        //         label: "ดูภาพที่ส่งมา",
+                                        //         uri: `สอบถามกับเจ้าหน้าที่, ${cacheImage}`,
+                                        //     },
+                                        // },
+                                        // {
+                                        //     type: "action",
+                                        //     action: {
+                                        //         type: "message",
+                                        //         label: "ส่งรูปภาพ",
+                                        //         text: "นี่คือรูปภาพที่คุณส่งมา",
+                                        //     },
+                                        //     imageUrl: "https://example.com/path-to-your-image.jpg",
+                                        // },
+                                    ],
+                                },
                             },
-                            text: "[ตอบโดย AI] ระบุสิ่งที่ต้องการทราบจากภาพมาได้เลยได้เลย:)"
-                        }]);
+                        ]);
                     }
-                    else{
-                        mode = "Dialogflow"
-                        await line.replyWithStateless(event.replyToken, [{
-                            "type": "text",
-                            "text": "ขออภัย ไม่สามารถตอบกลับข้อความประเภทนี้ได้",
-                        }])
-                        return response.end()
-                    }
+                    console.log("IMAGE Mode: ", mode);
+                    myCache.set(userId, mode, 600);
                 }
                 else {
-                    if(mode === "staff") {
+                    if (mode === "staff") {
                         mode = "staff"
                         return response.end()
                     }
-                    else{
+                    else {
                         mode = "Dialogflow"
                         await line.isAnimationLoading(userId)
+                        await dialogflow.forwardDialodflow(request)
                         await line.replyWithStateless(event.replyToken, [{
                             "type": "text",
                             "text": "ขออภัย ไม่สามารถตอบกลับข้อความประเภทนี้ได้ โปรดติดต่อเจ้าหน้าที่",
