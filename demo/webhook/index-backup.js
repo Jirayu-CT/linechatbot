@@ -52,6 +52,9 @@ exports.webhook = onRequest(async (request, response) => {
         let mode = modef(userId)
         let notifyStatus = myCache.get("Notify_" + userId)
 
+        // console.log("Event received:", JSON.stringify(event));
+        console.log("Current mode:", mode);
+
         switch (event.type) {
             case "follow":
                 profile = await line.getProfile(event.source.userId)
@@ -70,8 +73,8 @@ exports.webhook = onRequest(async (request, response) => {
             case "message":
                 if (event.message.type === "text") {
                     let textMessage = event.message.text
+                    console.log("Text message received:", textMessage);
 
-                    console.log("Notify Status: ", notifyStatus)
                     if (notifyStatus === undefined) {
                         notifyStatus = true
                     }
@@ -97,20 +100,27 @@ exports.webhook = onRequest(async (request, response) => {
                         mode = "Dialogflow"
                     }
 
-                    if (textMessage === "testWebhook/jirayu/122333") {
+                    if (textMessage === "testWebhook") {
+                        console.log("mode: ", mode)
                         await line.replyWithStateless(event.replyToken, [{
                             "type": "text",
-                            "text": JSON.stringify(event)
+                            "text": JSON.stringify(event),
                         }])
                     }
                     else if (textMessage.includes("สอบถามกับเจ้าหน้าที่") || textMessage === " สอบถามกับเจ้าหน้าที่" || textMessage.includes("สอบถามกับเจ้าหน้าที่ ")) {
-                        if (mode !== "staff" && notifyStatus) {
-                            mode = "staff"
-                            let profile = await line.getProfile(userId)
-                            const payload = [
+                        mode = "staff"
+                        let profile = await line.getProfile(userId)
+                        if (notifyStatus) {
+                            // line.notify({
+                            //     message: `มีผู้ใช้ชื่อ ${profile.displayName} ต้องการติดต่อเรื่อง: ${textMessage.replace("สอบถามกับเจ้าหน้าที่ ", "")}`,
+                            //     imageFullsize: profile.pictureUrl,
+                            //     imageThumbnail: profile.pictureUrl
+                            // })
+
+                            const messages = [
                                 {
                                     type: "text",
-                                    text: `[Demo Chatbot] มีผู้ใช้ชื่อ ${profile.displayName} ต้องการติดต่อเรื่อง: ${textMessage.replace("สอบถามกับเจ้าหน้าที่ ", "")}`
+                                    text: `[อบต.หนองชัยศรี Chatbot] มีผู้ใช้ชื่อ ${profile.displayName} ต้องการติดต่อเรื่อง: ${textMessage.replace("สอบถามกับเจ้าหน้าที่ ", "")}`
                                 },
                                 {
                                     type: "image",
@@ -119,49 +129,25 @@ exports.webhook = onRequest(async (request, response) => {
                                 }
                             ];
 
-                            // await line.pushMessageNotify(payload)
+                            await line.pushMessage(messages)
 
                             await line.replyWithStateless(event.replyToken, [{
                                 "type": "text",
                                 "text": "ขอบคุณที่ติดต่อเรา ทางเจ้าหน้าที่จะติดต่อกลับไปโดยเร็วที่สุด",
                             }])
                             myCache.set("Notify_" + userId, false, 600);
-                        } else if (mode !== "staff") {
-                            mode = "staff"
-                            await line.replyWithStateless(event.replyToken, [{
-                                "type": "text",
-                                "text": "ทางเจ้าหน้าที่ได้รับข้อความแล้ว ทางเจ้าหน้าที่จะติดต่อกลับไปโดยเร็วที่สุด",
-                            }])
-                        }
-                        else{
-                            return response.end()
                         }
                     }
                     else if (textMessage.includes("สอบถามกับ AI")) {
                         mode = "bot"
                         await line.isAnimationLoading(userId)
-
-                        //ตอบกลับรูปภาพ
-                        const cacheImage = myCache.get(CACHE_IMAGE + userId);
-                        if (cacheImage) {
-                            const text = await gemini.multimodal(textMessage, cacheImage);
-                            await line.replyWithStateless(event.replyToken, [{ 
-                                type: "text", 
-                                sender: {
-                                    name: "Gemini",
-                                    iconUrl: "https://wutthipong.info/images/geminiicon.png"
-                                },
-                                text: `[ตอบโดย AI] ${text}`
-                            }]);
-                            break;
-                        }
-
                         let chatHistory = myCache.get(CACHE_CHAT + userId);
                         if (!chatHistory) {
                             chatHistory = [];
                         }
 
                         let question = textMessage.replace("สอบถามกับ AI ", "");
+                        console.log("question: ", question);
                         const text = await gemini.chat(chatHistory, question);
 
                         await line.replyWithStateless(event.replyToken, [{
@@ -182,50 +168,13 @@ exports.webhook = onRequest(async (request, response) => {
                         await dialogflow.forwardDialodflow(request)
                     }
                     myCache.set(userId, mode, 600);
-                }
-                else if(event.message.type === "image") {
-                    if(mode === "staff") {
-                        mode = "staff"
-                        return response.end()
-                    }
-                    else if(mode === "bot") {
-                        mode = "bot"
-                        await line.isAnimationLoading(userId)
-
-                        const getImageBinary = await line.getImageBinary(event.message.id);
-                        const imageBase64 = Buffer.from(getImageBinary, "binary").toString("base64");
-                        myCache.set(CACHE_IMAGE + userId, imageBase64, 60);
-                        await line.replyWithStateless(event.replyToken, [{ 
-                            type: "text", 
-                            sender: {
-                                name: "Gemini",
-                                iconUrl: "https://wutthipong.info/images/geminiicon.png",
-                            },
-                            text: "[ตอบโดย AI] ระบุสิ่งที่ต้องการทราบจากภาพมาได้เลยได้เลย:)"
-                        }]);
-                    }
-                    else{
-                        mode = "Dialogflow"
-                        await line.replyWithStateless(event.replyToken, [{
-                            "type": "text",
-                            "text": "ขออภัย ไม่สามารถตอบกลับข้อความประเภทนี้ได้",
-                        }])
-                        return response.end()
-                    }
+                    console.log("Lastest Mode: " + mode);
                 }
                 else {
-                    if(mode === "staff") {
-                        mode = "staff"
-                        return response.end()
-                    }
-                    else{
-                        mode = "Dialogflow"
-                        await line.isAnimationLoading(userId)
-                        await line.replyWithStateless(event.replyToken, [{
-                            "type": "text",
-                            "text": "ขออภัย ไม่สามารถตอบกลับข้อความประเภทนี้ได้ โปรดติดต่อเจ้าหน้าที่",
-                        }])
-                    }
+                    await line.replyWithStateless(event.replyToken, [{
+                        "type": "text",
+                        "text": "ขออภัย ไม่สามารถตอบกลับข้อความประเภทนี้ได้",
+                    }])
                 }
                 break;
             default:
@@ -279,5 +228,8 @@ exports.dialogflow = onRequest(async (request, response) => {
         },
     ]);
     myCache.set(userId, mode, 600);
+    console.log("Lastest Mode: " + mode);
+
     return response.end();
+
 });

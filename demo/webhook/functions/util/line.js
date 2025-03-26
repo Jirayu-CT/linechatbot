@@ -145,7 +145,7 @@ exports.getImageBinary = async (messageId) => {
 exports.notify = async (payload) => {
   try {
     return await axios.post(
-      'https://notify-api.line.me/api/notify',
+      process.env.LINE_NOTIFY_API,
       qs.stringify(payload),
       {
         headers: {
@@ -160,7 +160,7 @@ exports.notify = async (payload) => {
   }
 };
 
-exports.pushMessage = async (textMessage) => {
+exports.pushMessageNotify = async (textMessage) => {
   try {
     const url = `${process.env.LINE_MESSAGING_API}/message/push`;
 
@@ -176,13 +176,12 @@ exports.pushMessage = async (textMessage) => {
     });
 
     if (response.status === 200) {
-      console.log("Message sent successfully:", response.data);
       return response.data;
     } else {
-      throw new Error(`Failed to send message. API responded with status: ${response.status}`);
+      throw new Error(`Failed to send message notify. API responded with status: ${response.status}`);
     }
   } catch (error) {
-    console.error('Error sending push message:', error.response ? error.response.data : error.message);
+    console.error('Error sending push message notify:', error.response ? error.response.data : error.message);
     throw error;
   }
 };
