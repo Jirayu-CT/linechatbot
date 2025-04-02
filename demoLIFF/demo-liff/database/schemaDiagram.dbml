@@ -1,0 +1,148 @@
+Table User {
+  user_id       int [pk, increment, note: "รหัสผู้ใช้ (Primary Key)"]
+  email         varchar [unique, not null, note: "อีเมลของผู้ใช้ (ต้องไม่ซ้ำ)"]
+  password      varchar [not null, note: "รหัสผ่านของผู้ใช้"]
+  role          enum('STUDENT', 'TEACHER', 'GUARDIAN', 'ADMIN') [not null, note: "บทบาทของผู้ใช้ เช่น นักเรียน ครู ผู้ปกครอง หรือผู้ดูแลระบบ"]
+  student_id    int [unique, note: "รหัสนักเรียน (เชื่อมโยงกับตาราง Student)"]
+  teacher_id    int [unique, note: "รหัสครู (เชื่อมโยงกับตาราง Teacher)"]
+  guardian_id   int [unique, note: "รหัสผู้ปกครอง (เชื่อมโยงกับตาราง Guardian)"]
+  created_at    timestamp [note: "วันที่และเวลาที่สร้างข้อมูล"]
+  updated_at    timestamp [note: "วันที่และเวลาที่อัปเดตข้อมูลล่าสุด"]
+}
+
+Ref: User.student_id > Student.student_id [delete: set null]
+Ref: User.teacher_id > Teacher.teacher_id [delete: set null]
+Ref: User.guardian_id > Guardian.guardian_id [delete: set null]
+
+Table Student {
+  student_id    int [pk, increment, note: "รหัสนักเรียน (Primary Key)"]
+  user_id       int [unique, note: "รหัสผู้ใช้ (เชื่อมโยงกับตาราง User)"]
+  class_id      int [note: "รหัสชั้นเรียน (เชื่อมโยงกับตาราง Class)"]
+  guardian_id   int [note: "รหัสผู้ปกครอง (เชื่อมโยงกับตาราง Guardian)"]
+  first_name    varchar [not null, note: "ชื่อจริงของนักเรียน"]
+  last_name     varchar [not null, note: "นามสกุลของนักเรียน"]
+  birth_date    date [not null, note: "วันเกิดของนักเรียน"]
+  gender        varchar [not null, note: "เพศของนักเรียน"]
+  address       varchar [not null, note: "ที่อยู่ของนักเรียน"]
+  phone_number  varchar [not null, note: "เบอร์โทรศัพท์ของนักเรียน"]
+  status        varchar [default: 'active', note: "สถานะของนักเรียน เช่น active หรือ inactive"]
+  created_at    timestamp [note: "วันที่และเวลาที่สร้างข้อมูล"]
+  updated_at    timestamp [note: "วันที่และเวลาที่อัปเดตข้อมูลล่าสุด"]
+}
+
+Ref: Student.class_id > Class.class_id [delete: set null]
+Ref: Student.guardian_id > Guardian.guardian_id [delete: set null]
+
+Table Teacher {
+  teacher_id    int [pk, increment, note: "รหัสครู (Primary Key)"]
+  department_id int [note: "รหัสแผนก (เชื่อมโยงกับตาราง Department)"]
+  first_name    varchar [not null, note: "ชื่อจริงของครู"]
+  last_name     varchar [not null, note: "นามสกุลของครู"]
+  email         varchar [not null, note: "อีเมลของครู"]
+  phone_number  varchar [not null, note: "เบอร์โทรศัพท์ของครู"]
+  status        varchar [default: 'active', note: "สถานะของครู เช่น active หรือ inactive"]
+  created_at    timestamp [note: "วันที่และเวลาที่สร้างข้อมูล"]
+  updated_at    timestamp [note: "วันที่และเวลาที่อัปเดตข้อมูลล่าสุด"]
+}
+
+Ref: Teacher.department_id > Department.department_id [delete: set null]
+
+Table Guardian {
+  guardian_id   int [pk, increment, note: "รหัสผู้ปกครอง (Primary Key)"]
+  first_name    varchar [not null, note: "ชื่อจริงของผู้ปกครอง"]
+  last_name     varchar [not null, note: "นามสกุลของผู้ปกครอง"]
+  relation      varchar [not null, note: "ความสัมพันธ์กับนักเรียน เช่น พ่อ แม่ หรือผู้ปกครอง"]
+  phone_number  varchar [not null, note: "เบอร์โทรศัพท์ของผู้ปกครอง"]
+  email         varchar [note: "อีเมลของผู้ปกครอง"]
+  created_at    timestamp [note: "วันที่และเวลาที่สร้างข้อมูล"]
+  updated_at    timestamp [note: "วันที่และเวลาที่อัปเดตข้อมูลล่าสุด"]
+}
+
+Table Department {
+  department_id   int [pk, increment, note: "รหัสแผนก (Primary Key)"]
+  department_name varchar [not null, note: "ชื่อแผนก"]
+}
+
+Table TeacherSubject {
+  teacher_id int [pk, note: "รหัสครู (Primary Key ร่วม)"]
+  subject_id int [pk, note: "รหัสวิชา (Primary Key ร่วม)"]
+}
+
+Ref: TeacherSubject.teacher_id > Teacher.teacher_id
+Ref: TeacherSubject.subject_id > Subject.subject_id
+
+Table Class {
+  class_id     int [pk, increment, note: "รหัสชั้นเรียน (Primary Key)"]
+  teacher_id   int [note: "รหัสครูประจำชั้น (เชื่อมโยงกับตาราง Teacher)"]
+  class_name   varchar [not null, note: "ชื่อชั้นเรียน"]
+  grade_level  varchar [not null, note: "ระดับชั้น เช่น ประถม มัธยม"]
+  created_at   timestamp [note: "วันที่และเวลาที่สร้างข้อมูล"]
+  updated_at   timestamp [note: "วันที่และเวลาที่อัปเดตข้อมูลล่าสุด"]
+}
+
+Ref: Class.teacher_id > Teacher.teacher_id
+
+Table Schedule {
+  schedule_id  int [pk, increment, note: "รหัสตารางเรียน (Primary Key)"]
+  class_id     int [not null, note: "รหัสชั้นเรียน (เชื่อมโยงกับตาราง Class)"]
+  subject_id   int [not null, note: "รหัสวิชา (เชื่อมโยงกับตาราง Subject)"]
+  teacher_id   int [not null, note: "รหัสครู (เชื่อมโยงกับตาราง Teacher)"]
+  day_of_week  varchar [not null, note: "วันในสัปดาห์ เช่น Monday, Tuesday"]
+  start_time   datetime [not null, note: "เวลาเริ่มเรียน"]
+  end_time     datetime [not null, note: "เวลาสิ้นสุดการเรียน"]
+  created_at   timestamp [note: "วันที่และเวลาที่สร้างข้อมูล"]
+  updated_at   timestamp [note: "วันที่และเวลาที่อัปเดตข้อมูลล่าสุด"]
+}
+
+Ref: Schedule.class_id > Class.class_id
+Ref: Schedule.subject_id > Subject.subject_id
+Ref: Schedule.teacher_id > Teacher.teacher_id
+
+Table Subject {
+  subject_id    int [pk, increment, note: "รหัสวิชา (Primary Key)"]
+  subject_name  varchar [not null, note: "ชื่อวิชา"]
+  credit_hours  int [not null, note: "จำนวนชั่วโมงเรียน"]
+}
+
+Table Grade {
+  grade_id    int [pk, increment, note: "รหัสเกรด (Primary Key)"]
+  student_id  int [not null, note: "รหัสนักเรียน (เชื่อมโยงกับตาราง Student)"]
+  subject_id  int [not null, note: "รหัสวิชา (เชื่อมโยงกับตาราง Subject)"]
+  grade       varchar [not null, note: "เกรดที่ได้รับ เช่น A, B, C"]
+  term        varchar [not null, note: "ภาคการศึกษา เช่น เทอม 1, เทอม 2"]
+}
+
+Ref: Grade.student_id > Student.student_id
+Ref: Grade.subject_id > Subject.subject_id
+
+Table Activity {
+  activity_id   int [pk, increment, note: "รหัสกิจกรรม (Primary Key)"]
+  organizer_id  int [not null, note: "รหัสผู้จัดกิจกรรม (เชื่อมโยงกับตาราง Teacher)"]
+  activity_name varchar [not null, note: "ชื่อกิจกรรม"]
+  activity_date datetime [not null, note: "วันที่จัดกิจกรรม"]
+  description   text [not null, note: "รายละเอียดกิจกรรม"]
+  status        varchar [default: 'upcoming', note: "สถานะกิจกรรม เช่น upcoming, completed"]
+  created_at    timestamp [note: "วันที่และเวลาที่สร้างข้อมูล"]
+  updated_at    timestamp [note: "วันที่และเวลาที่อัปเดตข้อมูลล่าสุด"]
+}
+
+Ref: Activity.organizer_id > Teacher.teacher_id
+
+Table ActivityParticipant {
+  id           int [pk, increment, note: "รหัสผู้เข้าร่วมกิจกรรม (Primary Key)"]
+  activity_id  int [not null, note: "รหัสกิจกรรม (เชื่อมโยงกับตาราง Activity)"]
+  student_id   int [note: "รหัสนักเรียน (เชื่อมโยงกับตาราง Student)"]
+}
+
+Ref: ActivityParticipant.activity_id > Activity.activity_id [delete: cascade]
+Ref: ActivityParticipant.student_id > Student.student_id [delete: set null]
+
+Table SchoolStore {
+  product_id     int [pk, increment, note: "รหัสสินค้า (Primary Key)"]
+  product_name   varchar [not null, note: "ชื่อสินค้า"]
+  price          float [not null, note: "ราคาสินค้า"]
+  stock_quantity int [not null, note: "จำนวนสินค้าคงเหลือ"]
+  status         varchar [default: 'available', note: "สถานะสินค้า เช่น available, out of stock"]
+  created_at     timestamp [note: "วันที่และเวลาที่สร้างข้อมูล"]
+  updated_at     timestamp [note: "วันที่และเวลาที่อัปเดตข้อมูลล่าสุด"]
+}

@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  GUARDIAN
+  ADMIN
+}
+
+model User {
+  user_id    Int    @id @default(autoincrement())
+  email      String @unique
+  password   String
+  role       Role
+  student_id Int? @unique
+  teacher_id Int? @unique
+  guardian_id Int? @unique
+
+  student  Student?  @relation(fields: [student_id], references: [student_id], onDelete: SetNull)
+  teacher  Teacher?  @relation(fields: [teacher_id], references: [teacher_id], onDelete: SetNull)
+  guardian Guardian? @relation(fields: [guardian_id], references: [guardian_id], onDelete: SetNull)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Student {
+  student_id   Int     @id @default(autoincrement())
+  class_id     Int? // Made optional
+  guardian_id  Int?
+  user_id      Int?
+
+  first_name   String
+  last_name    String
+  birth_date   DateTime
+  gender       String
+  address      String
+  phone_number String
+  status       String  @default("active")
+
+  class        Class?   @relation(fields: [class_id], references: [class_id], onUpdate: Cascade, onDelete: SetNull) // Made optional
+  guardian     Guardian? @relation(fields: [guardian_id], references: [guardian_id], onUpdate: Cascade, onDelete: SetNull)
+  user         User? @relation()
+  activities   ActivityParticipant[]
+  grades       Grade[] // Added opposite relation field
+
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
+model Teacher {
+  teacher_id   Int     @id @default(autoincrement())
+  department_id Int? // Made optional
+
+  first_name   String
+  last_name    String
+  email        String
+  phone_number String
+  status       String  @default("active")
+
+  department   Department? @relation(fields: [department_id], references: [department_id], onUpdate: Cascade, onDelete: SetNull) // Made optional
+  classes      Class[]
+  subjects     TeacherSubject[]
+  activities   Activity[]
+  user         User? @relation()
+  schedules    Schedule[]
+
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
+model Guardian {
+  guardian_id  Int    @id @default(autoincrement())
+
+  first_name   String
+  last_name    String
+  relation     String
+  phone_number String
+  email        String?
+
+  students     Student[]
+  user         User? @relation()
+
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
+model Department {
+  department_id   Int    @id @default(autoincrement())
+
+  department_name String
+  teachers        Teacher[]
+}
+
+model TeacherSubject {
+  teacher_id Int
+  subject_id Int
+
+  teacher Teacher @relation(fields: [teacher_id], references: [teacher_id])
+  subject Subject @relation(fields: [subject_id], references: [subject_id])
+
+  @@id([teacher_id, subject_id])
+}
+
+model Class {
+  class_id    Int    @id @default(autoincrement())
+  teacher_id  Int
+
+  class_name  String
+  grade_level String
+
+  teacher     Teacher @relation(fields: [teacher_id], references: [teacher_id])
+  students    Student[]
+  schedules   Schedule[]
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model Schedule {
+  schedule_id Int     @id @default(autoincrement())
+  class_id    Int
+  subject_id  Int
+  teacher_id  Int
+
+  day_of_week String
+  start_time  DateTime
+  end_time    DateTime
+
+  class       Class   @relation(fields: [class_id], references: [class_id])
+  subject     Subject @relation(fields: [subject_id], references: [subject_id])
+  teacher     Teacher @relation(fields: [teacher_id], references: [teacher_id])
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model Subject {
+  subject_id    Int    @id @default(autoincrement())
+
+  subject_name  String
+  credit_hours  Int
+
+  teachers      TeacherSubject[]
+  schedules     Schedule[] // Added opposite relation field
+  grades        Grade[] // Added opposite relation field
+}
+
+model Grade {
+  grade_id   Int    @id @default(autoincrement())
+  student_id Int
+  subject_id Int
+
+  grade      String
+  term       String
+
+  student    Student @relation(fields: [student_id], references: [student_id])
+  subject    Subject @relation(fields: [subject_id], references: [subject_id])
+}
+
+model Activity {
+  activity_id   Int    @id @default(autoincrement())
+  organizer_id  Int
+
+  activity_name String
+  activity_date DateTime
+  description   String
+  status        String @default("upcoming")
+
+  organizer     Teacher @relation(fields: [organizer_id], references: [teacher_id])
+  participants  ActivityParticipant[]
+
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model ActivityParticipant {
+  id          Int    @id @default(autoincrement()) // ใช้ id ใหม่แทน composite key
+  activity_id Int
+  student_id  Int?
+
+  activity    Activity @relation(fields: [activity_id], references: [activity_id], onDelete: Cascade)
+  student     Student? @relation(fields: [student_id], references: [student_id], onDelete: SetNull)
+}
+
+model SchoolStore {
+  product_id    Int     @id @default(autoincrement())
+
+  product_name  String
+  price         Float
+  stock_quantity Int
+  status        String @default("available")
+}
