@@ -118,7 +118,6 @@ exports.webhook = onRequest(async (request, response) => {
                     // console.log("chatHistory webhook: ", chatHistory);
 
                     if (textMessage === "testWebhook") {
-                        chatHistory(event.source.userId, event.message.text)
                         await line.replyWithStateless(event.replyToken, [{
                             "type": "text",
                             "text": JSON.stringify(event),

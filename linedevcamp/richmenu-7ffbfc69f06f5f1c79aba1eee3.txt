@@ -13,3 +13,12 @@ LIFF: https://codelab.line.me/codelabs/liff/index.html#1
 <section id="profile">
       <img id="pictureUrl" src="https://bucket.ex10.tech/images/0350ceb0-04c4-11ef-808f-0242ac12000b/originalContentUrl.png" />
     </section>
+
+await liff.init({ liffId: "2006948383-Qr9D5k1L" })
+
+// Try a LIFF function
+switch (liff.getOS()) {
+  case "android": body.style.backgroundColor = "#d1f5d3"; break
+  case "ios": body.style.backgroundColor = "#eeeeee"; break
+}
+

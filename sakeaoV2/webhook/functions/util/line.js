@@ -145,7 +145,7 @@ exports.getImageBinary = async (messageId) => {
 exports.notify = async (payload) => {
   try {
     return await axios.post(
-      'https://notify-api.line.me/api/notify',
+      process.env.LINE_NOTIFY_API,
       qs.stringify(payload),
       {
         headers: {
@@ -159,6 +159,33 @@ exports.notify = async (payload) => {
     throw error;
   }
 };
+
+exports.pushMessageNotify = async (textMessage) => {
+  try {
+    const url = `${process.env.LINE_MESSAGING_API}/message/push`;
+
+    const response = await axios.post(url, {
+    to: process.env.LINE_MESSAGEING_GROUP_ID,
+      messages: textMessage,
+      notificationDisabled: false // เปลี่ยนเป็น true หากต้องการปิดแจ้งเตือน
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.LINE_MESSAGING_ACCESS_TOKEN_NOTIFY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(`Failed to send message notify. API responded with status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error sending push message notify:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
 /* 
         method: "post",
         url: "https://notify-api.line.me/api/notify",

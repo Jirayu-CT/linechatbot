@@ -35,8 +35,6 @@ function validateWebhook(request, response) {
 exports.webhook = onRequest(async (request, response) => {
     validateWebhook(request, response)
 
-
-
     const events = request.body.events
     for (const event of events) {
         let profile = {}
@@ -107,7 +105,6 @@ exports.webhook = onRequest(async (request, response) => {
                             "type": "text",
                             "text": JSON.stringify(event),
                         }])
-
 
                     } else if (textMessage === "2") {
 
